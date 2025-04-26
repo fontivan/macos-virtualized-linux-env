@@ -1,0 +1,34 @@
+# ARCH is mandatory, passed in from build.sh
+ARG ARCH
+
+# Subscription manager configuration is mandatory, passed in via environment
+ARG SUBSCRIPTION_MANAGER_ORG
+ARG SUBSCRIPTION_MANAGER_KEY
+
+FROM --platform=linux/${ARCH} registry.redhat.io/rhel9-4-els/rhel:9.4
+
+# Pass args into the build stage
+ARG ARCH
+ARG SUBSCRIPTION_MANAGER_ORG
+ARG SUBSCRIPTION_MANAGER_KEY
+
+RUN subscription-manager register --org "${SUBSCRIPTION_MANAGER_ORG}" --activationkey "${SUBSCRIPTION_MANAGER_KEY}"
+
+RUN yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm -y
+
+RUN yum groupinstall 'Development Tools' -y
+
+RUN yum install \
+        cargo \
+        container-tools \
+        golang \
+        moreutils \
+        rust \
+        zsh \
+        -y
+
+RUN curl -o /usr/local/bin/jq https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-${ARCH} && \
+    curl -o /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.45.1/yq_linux_${ARCH} && \
+    cd /usr/local/bin && curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash && chmod +x kustomize
+
+ENTRYPOINT ["zsh"]
