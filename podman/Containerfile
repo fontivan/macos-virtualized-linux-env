@@ -25,6 +25,11 @@ ENV PATH "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/go/
 COPY --from=openshift-cli /usr/share/openshift/linux_${ARCH}/oc.rhel9 /usr/local/bin/oc
 RUN chmod +x /usr/local/bin/oc
 
+# Install extra tools that aren't available via yum
+RUN curl -o /usr/local/bin/jq https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-${ARCH} && \
+    curl -o /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.45.1/yq_linux_${ARCH} && \
+    cd /usr/local/bin && curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash && chmod +x kustomize
+
 # Configure subscription for RHEL packages
 RUN subscription-manager register --org "${SUBSCRIPTION_MANAGER_ORG}" --activationkey "${SUBSCRIPTION_MANAGER_KEY}"
 
@@ -33,6 +38,9 @@ RUN yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noar
 
 # We will need basically everything in this group eventually
 RUN yum groupinstall 'Development Tools' -y
+
+# Need to enable nodejs module to get a reasonably current version
+RUN yum module enable nodejs:20 -y
 
 # Also install some specific packages
 RUN yum install \
@@ -45,10 +53,5 @@ RUN yum install \
         wget \
         zsh \
         -y
-
-# Install extra tools that aren't available via yum
-RUN curl -o /usr/local/bin/jq https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-${ARCH} && \
-    curl -o /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.45.1/yq_linux_${ARCH} && \
-    cd /usr/local/bin && curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash && chmod +x kustomize
 
 ENTRYPOINT ["zsh"]
