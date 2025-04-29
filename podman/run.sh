@@ -13,8 +13,9 @@ function run {
         -it \
         --rm \
         --arch "${arch}" \
-        --workdir "${GIT_DIR}" \
+        --workdir "/git" \
         -v "/var/run/docker.sock:/run/podman/podman.sock" \
+        -v "/Users/$(whoami)/kubeconfigs:/kubeconfigs:Z" \
         -v "${SSH_DIR}/id_rsa:/root/.ssh/id_rsa:ro" \
         -v "${SSH_DIR}/id_rsa.pub:/root/.ssh/id_rsa.pub:ro" \
         -v "/Users/$(whoami)/.zshrc:/root/.zshrc:ro" \

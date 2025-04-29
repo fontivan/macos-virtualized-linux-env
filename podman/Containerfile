@@ -5,6 +5,9 @@ ARG ARCH
 ARG SUBSCRIPTION_MANAGER_ORG
 ARG SUBSCRIPTION_MANAGER_KEY
 
+# The origin-cli image is provided as amd64 but contains multiple binaries for different architectures
+FROM --platform=linux/amd64 quay.io/openshift/origin-cli-artifacts:latest as openshift-cli
+
 FROM --platform=linux/${ARCH} registry.redhat.io/rhel9-4-els/rhel:9.4
 
 # Pass args into the build stage
@@ -12,21 +15,38 @@ ARG ARCH
 ARG SUBSCRIPTION_MANAGER_ORG
 ARG SUBSCRIPTION_MANAGER_KEY
 
+# Explicitly set root user
+USER root
+
+# Explicitly set the path to include extra paths for golang and rust
+ENV PATH "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/go/bin:/root/.cargo/bin"
+
+# Copy the oc binary from the cli image
+COPY --from=openshift-cli /usr/share/openshift/linux_${ARCH}/oc.rhel9 /usr/local/bin/oc
+RUN chmod +x /usr/local/bin/oc
+
+# Configure subscription for RHEL packages
 RUN subscription-manager register --org "${SUBSCRIPTION_MANAGER_ORG}" --activationkey "${SUBSCRIPTION_MANAGER_KEY}"
 
+# Install EPEL for extra packages
 RUN yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm -y
 
+# We will need basically everything in this group eventually
 RUN yum groupinstall 'Development Tools' -y
 
+# Also install some specific packages
 RUN yum install \
         cargo \
         container-tools \
         golang \
+        nodejs \
         moreutils \
         rust \
+        wget \
         zsh \
         -y
 
+# Install extra tools that aren't available via yum
 RUN curl -o /usr/local/bin/jq https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-${ARCH} && \
     curl -o /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.45.1/yq_linux_${ARCH} && \
     cd /usr/local/bin && curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash && chmod +x kustomize
