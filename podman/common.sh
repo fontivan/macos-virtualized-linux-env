@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 
 TAG="localhost/macos-virtualized-linux-env"
-# GIT_DIR can be overwritten in environment
-GIT_DIR="${GIT_DIR:-/Users/$(whoami)/git}"
-SSH_DIR="/Users/$(whoami)/.ssh"
 
 # These must be passed as environment variables to the script
 SUBSCRIPTION_MANAGER_ORG=${SUBSCRIPTION_MANAGER_ORG-}

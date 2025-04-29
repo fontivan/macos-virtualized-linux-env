@@ -16,11 +16,15 @@ function run {
         --workdir "/git" \
         -v "/var/run/docker.sock:/run/podman/podman.sock" \
         -v "/Users/$(whoami)/kubeconfigs:/kubeconfigs:Z" \
-        -v "${SSH_DIR}/id_rsa:/root/.ssh/id_rsa:ro" \
-        -v "${SSH_DIR}/id_rsa.pub:/root/.ssh/id_rsa.pub:ro" \
+        -v "/Users/$(whoami)/.gitconfig:/root/.gitconfig:Z" \
+        -v "/Users/$(whoami)/.gnupg/pubring.kbx:/root/.gnupg/pubring.kbx:ro" \
+        -v "/Users/$(whoami)/.gnupg/gpg.conf:/root/.gnupg/gpg.conf:ro" \
+        -v "/Users/$(whoami)/.gnupg/private-keys-v1.d:/root/.gnupg/private-keys-v1.d:ro" \
+        -v "/Users/$(whoami)/.ssh/id_rsa:/root/.ssh/id_rsa:ro" \
+        -v "/Users/$(whoami)/.ssh/id_rsa.pub:/root/.ssh/id_rsa.pub:ro" \
         -v "/Users/$(whoami)/.zshrc:/root/.zshrc:ro" \
         -v "/Users/$(whoami)/.oh-my-zsh:/root/.oh-my-zsh:ro" \
-        -v "${GIT_DIR}:/git:Z" \
+        -v "/Users/$(whoami)/git:/git:Z" \
         -t "${TAG}-${arch}"
 }
 

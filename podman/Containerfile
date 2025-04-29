@@ -49,9 +49,12 @@ RUN yum install \
         golang \
         nodejs \
         moreutils \
+        pinentry \
         rust \
         wget \
         zsh \
         -y
 
-ENTRYPOINT ["zsh"]
+# Copy entrypoint
+COPY entrypoint.sh /root/entrypoint.sh
+ENTRYPOINT ["/root/entrypoint.sh"]
