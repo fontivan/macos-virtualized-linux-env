@@ -12,6 +12,7 @@ function build {
     podman build \
         --arch $arch \
         --build-arg ARCH="${arch}" \
+        --build-arg OC_ARCH="$(echo ${arch} | sed 's/aarch64/arm64/')" \
         --build-arg SUBSCRIPTION_MANAGER_ORG="${SUBSCRIPTION_MANAGER_ORG}" \
         --build-arg SUBSCRIPTION_MANAGER_KEY="${SUBSCRIPTION_MANAGER_KEY}" \
         -t "${TAG}-${arch}" \
