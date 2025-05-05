@@ -28,10 +28,20 @@ ENV PATH "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/go/
 COPY --from=openshift-cli /usr/share/openshift/linux_${OC_ARCH}/oc.rhel9 /usr/local/bin/oc
 RUN chmod +x /usr/local/bin/oc
 
-# Install extra tools that aren't available via yum
-RUN curl -o /usr/local/bin/jq https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-${ARCH} && \
-    curl -o /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.45.1/yq_linux_${ARCH} && \
-    cd /usr/local/bin && curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash && chmod +x kustomize
+# Install jq from github
+RUN curl -L -o /usr/local/bin/jq https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-${ARCH} && \
+    chmod +x /usr/local/bin/jq
+
+# Install yq from github
+RUN curl -L -o /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.45.1/yq_linux_${ARCH} && \
+    chmod +x /usr/local/bin/yq
+
+# Install kustomize from github
+RUN curl -s -o /tmp/install_kustomize.sh "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" && \
+    chmod +x /tmp/install_kustomize.sh && \
+    /tmp/install_kustomize.sh /usr/local/bin && \
+    chmod +x /usr/local/bin/kustomize && \
+    rm /tmp/install_kustomize.sh
 
 # Configure subscription for RHEL packages
 RUN subscription-manager register --org "${SUBSCRIPTION_MANAGER_ORG}" --activationkey "${SUBSCRIPTION_MANAGER_KEY}"
