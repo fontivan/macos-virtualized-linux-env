@@ -1,0 +1,93 @@
+# Version strings
+ARG JQ_VERSION="1.7.1"
+ARG NODEJS_VERSION="20"
+ARG OPENSHIFT_VERSION="4.18"
+ARG YQ_VERSION="4.45.1"
+
+# AMD64_AARCH64_ARCH is mandatory, passed in from build.sh
+ARG AMD64_AARCH64_ARCH
+
+# Some of the tools use `arm64` instead of `aarch64`
+ARG AMD64_ARM64_ARCH
+
+FROM --platform=linux/${AMD64_AARCH64_ARCH} debian:stable-slim
+
+# Pass args into the build stage
+ARG AMD64_AARCH64_ARCH
+ARG AMD64_ARM64_ARCH
+
+# Pass versions into build stage
+ARG JQ_VERSION
+ARG NODEJS_VERSION
+ARG OPENSHIFT_VERSION
+ARG YQ_VERSION
+
+# Explicitly set root user
+USER root
+
+# Explicitly set the path to include extra paths for golang and rust
+ENV PATH "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/go/bin:/root/.cargo/bin"
+
+# Install necessary tools for later steps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    gnupg \
+    software-properties-common
+
+# Install jq from github
+RUN curl -L -o /usr/local/bin/jq https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-linux-${AMD64_ARM64_ARCH} && \
+    chmod +x /usr/local/bin/jq
+
+# Install yq from github
+RUN curl -L -o /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${AMD64_ARM64_ARCH} && \
+    chmod +x /usr/local/bin/yq
+
+# Install kustomize from github
+RUN curl -s -o /tmp/install_kustomize.sh "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" && \
+    chmod +x /tmp/install_kustomize.sh && \
+    /tmp/install_kustomize.sh /usr/local/bin && \
+    chmod +x /usr/local/bin/kustomize && \
+    rm /tmp/install_kustomize.sh
+
+# Install opm from the openshift mirror
+RUN mkdir -p /tmp/opm && \
+    curl -o /tmp/opm/opm-linux-amd64.tar.gz https://mirror.openshift.com/pub/openshift-v4/${AMD64_AARCH64_ARCH}/clients/ocp/latest-${OPENSHIFT_VERSION}/opm-linux.tar.gz && \
+    tar -xvf /tmp/opm/opm-linux-amd64.tar.gz -C /tmp/opm && \
+    mv /tmp/opm/opm-rhel8 /usr/local/bin/opm && \
+    chmod +x /usr/local/bin/opm && \
+    rm -rf /tmp/opm
+
+# Install openshift-cli from the openshift mirror
+RUN mkdir -p /tmp/oc && \
+    curl -o /tmp/openshift-client-linux.tar.gz https://mirror.openshift.com/pub/openshift-v4/${AMD64_AARCH64_ARCH}/clients/ocp/latest-${OPENSHIFT_VERSION}/openshift-client-linux.tar.gz  && \
+    tar -xvf /tmp/openshift-client-linux.tar.gz -C /tmp/oc && \
+    mv /tmp/oc/oc /usr/local/bin/oc && \
+    chmod +x /usr/local/bin/oc && \
+    mv /tmp/oc/kubectl /usr/local/bin/kubectl && \
+    chmod +x /usr/local/bin/kubectl && \
+    rm -rf /tmp/oc
+
+# Debian doesn't use subscription-manager or EPEL
+# The equivalent of 'Development Tools' is 'build-essential'
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    cargo \
+    golang \
+    moreutils \
+    pinentry-gtk2 \
+    rustc \
+    wget \
+    zsh \
+    podman \
+    buildah \
+    skopeo \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install a recent version of Node.js
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODEJS_VERSION}.x | bash - && \
+    apt-get update && apt-get install -y --no-install-recommends nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy entrypoint
+COPY common/entrypoint.sh /root/entrypoint.sh
+ENTRYPOINT ["/root/entrypoint.sh"]

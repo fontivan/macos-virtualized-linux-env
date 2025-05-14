@@ -1,9 +1,33 @@
 #!/usr/bin/env bash
 
-set -eou pipefail
+TAG="${TAG-localhost/macos-virtualized-linux-env}"
 
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-source "${SCRIPT_DIR}/common.sh"
+function check_arg {
+    if [[ $# -eq 0 ]];
+    then
+        echo "\$1 must be 'amd64' or 'aarch64'"
+        exit 1
+    fi
+
+    local arch
+    arch=$1
+    if [[ "${arch}" == "amd64" || "${arch}" == "aarch64" ]];
+    then
+        echo "Creating debian env using arch '$arch'"
+        return 0
+    else
+        echo "\$1 must be 'amd64' or 'aarch64'"
+        exit 1
+    fi
+}
+
+function check_os {
+    if [[ $(uname) != 'Darwin' ]];
+    then
+        echo "Only for macOS"
+        exit 1
+    fi
+}
 
 function run {
     local arch
@@ -27,11 +51,3 @@ function run {
         -v "/Users/$(whoami)/git:/git:Z" \
         -t "${TAG}-${arch}"
 }
-
-function main {
-    check_os $@
-    check_arg $@
-    run $@
-}
-
-main $@

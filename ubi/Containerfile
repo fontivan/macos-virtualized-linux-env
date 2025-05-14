@@ -95,5 +95,5 @@ RUN yum install \
         -y
 
 # Copy entrypoint
-COPY entrypoint.sh /root/entrypoint.sh
+COPY common/entrypoint.sh /root/entrypoint.sh
 ENTRYPOINT ["/root/entrypoint.sh"]
