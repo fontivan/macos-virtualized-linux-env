@@ -10,6 +10,9 @@ source "${SCRIPT_DIR}/../common/common.sh"
 # shellcheck disable=SC2034
 TAG="localhost/macos-virtualized-ubi-env"
 
+# shellcheck disable=SC2034
+LINUX_ENV="ubi"
+
 # These must be passed as environment variables to the script
 SUBSCRIPTION_MANAGER_ORG=${SUBSCRIPTION_MANAGER_ORG-}
 SUBSCRIPTION_MANAGER_KEY=${SUBSCRIPTION_MANAGER_KEY-}

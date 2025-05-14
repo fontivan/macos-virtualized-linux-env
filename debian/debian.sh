@@ -9,3 +9,6 @@ source "${SCRIPT_DIR}/../common/common.sh"
 
 # shellcheck disable=SC2034
 TAG="localhost/macos-virtualized-debian-env"
+
+# shellcheck disable=SC2034
+LINUX_ENV="debian"
