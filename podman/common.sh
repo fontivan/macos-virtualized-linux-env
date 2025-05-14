@@ -17,7 +17,7 @@ function check_arg {
     arch=$1
     if [[ "${arch}" == "amd64" || "${arch}" == "aarch64" ]];
     then
-        echo "Creating RHEL env using arch '$arch'"
+        echo "Creating UBI env using arch '$arch'"
         return 0
     else
         echo "\$1 must be 'amd64' or 'aarch64'"

@@ -1,3 +1,10 @@
+# Version strings
+ARG JQ_VERSION="1.7.1"
+ARG NODEJS_VERSION="20"
+ARG OPENSHIFT_VERSION="4.18"
+ARG UBI_VERSION="9"
+ARG YQ_VERSION="4.45.1"
+
 # AMD64_AARCH64_ARCH is mandatory, passed in from build.sh
 ARG AMD64_AARCH64_ARCH
 
@@ -8,10 +15,7 @@ ARG AMD64_ARM64_ARCH
 ARG SUBSCRIPTION_MANAGER_ORG
 ARG SUBSCRIPTION_MANAGER_KEY
 
-# The origin-cli image is provided as amd64 but contains multiple binaries for different architectures
-FROM --platform=linux/amd64 quay.io/openshift/origin-cli-artifacts:latest as openshift-cli
-
-FROM --platform=linux/${AMD64_AARCH64_ARCH} registry.redhat.io/rhel9-4-els/rhel:9.4
+FROM --platform=linux/${AMD64_AARCH64_ARCH} registry.redhat.io/ubi${UBI_VERSION}/ubi
 
 # Pass args into the build stage
 ARG AMD64_AARCH64_ARCH
@@ -19,22 +23,25 @@ ARG AMD64_ARM64_ARCH
 ARG SUBSCRIPTION_MANAGER_ORG
 ARG SUBSCRIPTION_MANAGER_KEY
 
+# Pass versions into build stage
+ARG JQ_VERSION
+ARG NODEJS_VERSION
+ARG OPENSHIFT_VERSION
+ARG UBI_VERSION
+ARG YQ_VERSION
+
 # Explicitly set root user
 USER root
 
 # Explicitly set the path to include extra paths for golang and rust
 ENV PATH "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/go/bin:/root/.cargo/bin"
 
-# Copy the oc binary from the cli image
-COPY --from=openshift-cli /usr/share/openshift/linux_${AMD64_ARM64_ARCH}/oc.rhel9 /usr/local/bin/oc
-RUN chmod +x /usr/local/bin/oc
-
 # Install jq from github
-RUN curl -L -o /usr/local/bin/jq https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-${AMD64_ARM64_ARCH} && \
+RUN curl -L -o /usr/local/bin/jq https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-linux-${AMD64_ARM64_ARCH} && \
     chmod +x /usr/local/bin/jq
 
 # Install yq from github
-RUN curl -L -o /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.45.1/yq_linux_${AMD64_ARM64_ARCH} && \
+RUN curl -L -o /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${AMD64_ARM64_ARCH} && \
     chmod +x /usr/local/bin/yq
 
 # Install kustomize from github
@@ -44,17 +51,35 @@ RUN curl -s -o /tmp/install_kustomize.sh "https://raw.githubusercontent.com/kube
     chmod +x /usr/local/bin/kustomize && \
     rm /tmp/install_kustomize.sh
 
+# Install opm from the openshift mirror
+RUN mkdir -p /tmp/opm && \
+    curl -o /tmp/opm/opm-linux-rhel${UBI_VERSION}.tar.gz https://mirror.openshift.com/pub/openshift-v4/${AMD64_AARCH64_ARCH}/clients/ocp/latest-${OPENSHIFT_VERSION}/opm-linux-rhel${UBI_VERSION}.tar.gz && \
+    tar -xvf /tmp/opm/opm-linux-rhel${UBI_VERSION}.tar.gz -C /tmp/opm && \
+    mv /tmp/opm/opm-rhel${UBI_VERSION} /usr/local/bin/opm && \
+    chmod +x /usr/local/bin/opm && \
+    rm -rf /tmp/opm
+
+# Install openshift-cli from the openshift mirror
+RUN mkdir -p /tmp/oc && \
+    curl -o /tmp/openshift-client-linux.tar.gz https://mirror.openshift.com/pub/openshift-v4/${AMD64_AARCH64_ARCH}/clients/ocp/latest-${OPENSHIFT_VERSION}/openshift-client-linux.tar.gz  && \
+    tar -xvf /tmp/openshift-client-linux.tar.gz -C /tmp/oc && \
+    mv /tmp/oc/oc /usr/local/bin/oc && \
+    chmod +x /usr/local/bin/oc && \
+    mv /tmp/oc/kubectl /usr/local/bin/kubectl && \
+    chmod +x /usr/local/bin/kubectl && \
+    rm -rf /tmp/oc
+
 # Configure subscription for RHEL packages
 RUN subscription-manager register --org "${SUBSCRIPTION_MANAGER_ORG}" --activationkey "${SUBSCRIPTION_MANAGER_KEY}"
 
 # Install EPEL for extra packages
-RUN yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm -y
+RUN yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-${UBI_VERSION}.noarch.rpm -y
 
 # We will need basically everything in this group eventually
 RUN yum groupinstall 'Development Tools' -y
 
 # Need to enable nodejs module to get a reasonably current version
-RUN yum module enable nodejs:20 -y
+RUN yum module enable nodejs:${NODEJS_VERSION} -y
 
 # Also install some specific packages
 RUN yum install \
