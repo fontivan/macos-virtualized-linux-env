@@ -3,6 +3,8 @@
 set -eou pipefail
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+# shellcheck disable=SC1091
 source "${SCRIPT_DIR}/ubi.sh"
 
 function build {
@@ -10,6 +12,7 @@ function build {
     arch=$1
     (
         cd "${SCRIPT_DIR}/../"
+        # shellcheck disable=SC2001,SC2086
         podman build \
             --arch ${arch} \
             --build-arg AMD64_AARCH64_ARCH="${arch}" \
@@ -23,10 +26,10 @@ function build {
 }
 
 function main {
-    check_os $@
-    check_arg $@
-    check_subscription $@
-    build $@
+    check_os "$@"
+    check_arg "$@"
+    check_subscription "$@"
+    build "$@"
 }
 
-main $@
+main "$@"

@@ -3,16 +3,14 @@
 TAG="${TAG-localhost/macos-virtualized-linux-env}"
 
 function check_arg {
-    if [[ $# -eq 0 ]];
-    then
+    if [[ $# -eq 0 ]]; then
         echo "\$1 must be 'amd64' or 'aarch64'"
         exit 1
     fi
 
     local arch
     arch=$1
-    if [[ "${arch}" == "amd64" || "${arch}" == "aarch64" ]];
-    then
+    if [[ "${arch}" == "amd64" || "${arch}" == "aarch64" ]]; then
         echo "Creating debian env using arch '$arch'"
         return 0
     else
@@ -22,8 +20,7 @@ function check_arg {
 }
 
 function check_os {
-    if [[ $(uname) != 'Darwin' ]];
-    then
+    if [[ $(uname) != 'Darwin' ]]; then
         echo "Only for macOS"
         exit 1
     fi

@@ -10,6 +10,7 @@ ARG AMD64_AARCH64_ARCH
 # Some of the tools use `arm64` instead of `aarch64`
 ARG AMD64_ARM64_ARCH
 
+# hadolint ignore=DL3006,DL3029
 FROM --platform=linux/${AMD64_AARCH64_ARCH} debian:stable-slim
 
 # Pass args into the build stage
@@ -23,16 +24,19 @@ ARG OPENSHIFT_VERSION
 ARG YQ_VERSION
 
 # Explicitly set root user
+# hadolint ignore=DL3002
 USER root
 
 # Explicitly set the path to include extra paths for golang and rust
 ENV PATH "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/go/bin:/root/.cargo/bin"
 
 # Install necessary tools for later steps
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     gnupg \
-    software-properties-common
+    software-properties-common && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install jq from github
 RUN curl -L -o /usr/local/bin/jq https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-linux-${AMD64_ARM64_ARCH} && \
@@ -69,22 +73,26 @@ RUN mkdir -p /tmp/oc && \
 
 # Debian doesn't use subscription-manager or EPEL
 # The equivalent of 'Development Tools' is 'build-essential'
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    buildah \
     cargo \
     golang \
     moreutils \
     pinentry-gtk2 \
-    rustc \
-    wget \
-    zsh \
     podman \
-    buildah \
+    rustc \
     skopeo \
-    && rm -rf /var/lib/apt/lists/*
+    wget \
+    zsh && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install a recent version of Node.js
-RUN curl -fsSL https://deb.nodesource.com/setup_${NODEJS_VERSION}.x | bash - && \
+# hadolint ignore=DL3008
+RUN curl -o /tmp/setup_${NODEJS_VERSION}.x -fsSL https://deb.nodesource.com/setup_${NODEJS_VERSION}.x && \
+    chmod +x /tmp/setup_${NODEJS_VERSION}.x && \
+    /tmp/setup_${NODEJS_VERSION}.x && \
     apt-get update && apt-get install -y --no-install-recommends nodejs && \
     rm -rf /var/lib/apt/lists/*
 

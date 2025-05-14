@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 # Configure GPG signing
-export GPG_TTY=$(tty)
+GPG_TTY=$(tty)
+export GPG_TTY
 
 # Start zsh
 zsh

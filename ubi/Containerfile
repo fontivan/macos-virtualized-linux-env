@@ -3,6 +3,7 @@ ARG JQ_VERSION="1.7.1"
 ARG NODEJS_VERSION="20"
 ARG OPENSHIFT_VERSION="4.18"
 ARG UBI_VERSION="9"
+ARG UBI_TAG="9.6"
 ARG YQ_VERSION="4.45.1"
 
 # AMD64_AARCH64_ARCH is mandatory, passed in from build.sh
@@ -15,7 +16,8 @@ ARG AMD64_ARM64_ARCH
 ARG SUBSCRIPTION_MANAGER_ORG
 ARG SUBSCRIPTION_MANAGER_KEY
 
-FROM --platform=linux/${AMD64_AARCH64_ARCH} registry.redhat.io/ubi${UBI_VERSION}/ubi
+# hadolint ignore=DL3006,DL3029
+FROM --platform=linux/${AMD64_AARCH64_ARCH} registry.redhat.io/ubi${UBI_VERSION}/ubi:${UBI_TAG}
 
 # Pass args into the build stage
 ARG AMD64_AARCH64_ARCH
@@ -31,6 +33,7 @@ ARG UBI_VERSION
 ARG YQ_VERSION
 
 # Explicitly set root user
+# hadolint ignore=DL3002
 USER root
 
 # Explicitly set the path to include extra paths for golang and rust
@@ -73,15 +76,18 @@ RUN mkdir -p /tmp/oc && \
 RUN subscription-manager register --org "${SUBSCRIPTION_MANAGER_ORG}" --activationkey "${SUBSCRIPTION_MANAGER_KEY}"
 
 # Install EPEL for extra packages
-RUN yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-${UBI_VERSION}.noarch.rpm -y
+RUN yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-${UBI_VERSION}.noarch.rpm -y && \
+    yum clean all -y
 
 # We will need basically everything in this group eventually
-RUN yum groupinstall 'Development Tools' -y
+RUN yum groupinstall 'Development Tools' -y && \
+    yum clean all -y
 
 # Need to enable nodejs module to get a reasonably current version
 RUN yum module enable nodejs:${NODEJS_VERSION} -y
 
 # Also install some specific packages
+# hadolint ignore=DL3033
 RUN yum install \
         cargo \
         container-tools \
@@ -92,7 +98,8 @@ RUN yum install \
         rust \
         wget \
         zsh \
-        -y
+        -y && \
+        yum clean all -y
 
 # Copy entrypoint
 COPY common/entrypoint.sh /root/entrypoint.sh

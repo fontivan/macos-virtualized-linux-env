@@ -1,0 +1,4 @@
+bashate
+hadolint-bin
+shellcheck-py
+yamllint
