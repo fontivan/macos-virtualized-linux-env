@@ -23,6 +23,9 @@ ARG NODEJS_VERSION
 ARG OPENSHIFT_VERSION
 ARG YQ_VERSION
 
+# Explicitly set the working directory
+WORKDIR /root
+
 # Explicitly set root user
 # hadolint ignore=DL3002
 USER root
@@ -95,6 +98,16 @@ RUN curl -o /tmp/setup_${NODEJS_VERSION}.x -fsSL https://deb.nodesource.com/setu
     /tmp/setup_${NODEJS_VERSION}.x && \
     apt-get update && apt-get install -y --no-install-recommends nodejs && \
     rm -rf /var/lib/apt/lists/*
+
+# Install some useful golang versions
+RUN git clone https://github.com/fontivan/golang-multi-version-installation.git && \
+    ./golang-multi-version-installation/src/install-golangs.sh 1.24.3 && \
+    ./golang-multi-version-installation/src/install-golangs.sh 1.23.9 && \
+    ./golang-multi-version-installation/src/install-golangs.sh 1.22.12 && \
+    ./golang-multi-version-installation/src/install-golangs.sh 1.21.13 && \
+    ./golang-multi-version-installation/src/install-golangs.sh 1.20.14 && \
+    ./golang-multi-version-installation/src/install-golangs.sh 1.19.13 && \
+    ./golang-multi-version-installation/src/install-golangs.sh 1.18.10
 
 # Copy entrypoint
 COPY common/entrypoint.sh /root/entrypoint.sh

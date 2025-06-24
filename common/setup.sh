@@ -15,9 +15,11 @@ function main {
         exit 1
     fi
 
-    brew install podman podman-desktop -y
-    podman machine init --cpus 8 --memory 16384 --disk-size 100 --rootful podman-machine-default
-    sudo /opt/homebrew/Cellar/podman/5.4.2/bin/podman-mac-helper install
+    brew install podman podman-desktop
+    podman machine init --cpus 8 --memory 8192 --disk-size 100 --rootful podman-machine-default
+    sudo /opt/homebrew/opt/podman/bin/podman-mac-helper install
     podman machine start
 
 }
+
+main
