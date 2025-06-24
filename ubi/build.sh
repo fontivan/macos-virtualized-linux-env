@@ -14,7 +14,8 @@ function build {
         cd "${SCRIPT_DIR}/../"
         # shellcheck disable=SC2001,SC2086
         podman build \
-            --arch ${arch} \
+            --arch "${arch}" \
+            --os "linux" \
             --build-arg AMD64_AARCH64_ARCH="${arch}" \
             --build-arg AMD64_ARM64_ARCH="$(echo ${arch} | sed 's/aarch64/arm64/')" \
             --build-arg SUBSCRIPTION_MANAGER_ORG="${SUBSCRIPTION_MANAGER_ORG}" \
