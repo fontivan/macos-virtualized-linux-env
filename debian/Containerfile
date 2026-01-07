@@ -2,6 +2,8 @@
 ARG JQ_VERSION="1.7.1"
 ARG NODEJS_VERSION="20"
 ARG OPENSHIFT_VERSION="4.18"
+ARG DEBIAN_VERSION="stable"
+ARG DEBIAN_TYPE="slim"
 ARG YQ_VERSION="4.45.1"
 
 # AMD64_AARCH64_ARCH is mandatory, passed in from build.sh
@@ -11,7 +13,7 @@ ARG AMD64_AARCH64_ARCH
 ARG AMD64_ARM64_ARCH
 
 # hadolint ignore=DL3006,DL3029
-FROM --platform=linux/${AMD64_AARCH64_ARCH} debian:stable-slim
+FROM --platform=linux/${AMD64_AARCH64_ARCH} debian:${DEBIAN_VERSION}-${DEBIAN_TYPE}
 
 # Pass args into the build stage
 ARG AMD64_AARCH64_ARCH
