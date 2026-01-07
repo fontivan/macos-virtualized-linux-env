@@ -98,6 +98,7 @@ RUN yum install \
         nodejs \
         moreutils \
         pinentry \
+        rsync \
         rust \
         sudo \
         wget \

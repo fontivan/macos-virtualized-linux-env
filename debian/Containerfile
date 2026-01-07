@@ -85,6 +85,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     moreutils \
     pinentry-gtk2 \
     podman \
+    rsync \
     rustc \
     skopeo \
     wget \
