@@ -17,7 +17,7 @@ ARG SUBSCRIPTION_MANAGER_ORG
 ARG SUBSCRIPTION_MANAGER_KEY
 
 # hadolint ignore=DL3006,DL3029
-FROM --platform=linux/${AMD64_AARCH64_ARCH} registry.redhat.io/ubi${UBI_VERSION}/ubi:${UBI_TAG}
+FROM --platform=linux/${AMD64_AARCH64_ARCH} registry.access.redhat.com/ubi${UBI_VERSION}/ubi:${UBI_TAG}
 
 # Pass args into the build stage
 ARG AMD64_AARCH64_ARCH
